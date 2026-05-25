@@ -1,0 +1,129 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc} 
+\usepackage[spanish]{babel} 
+\usepackage{tikz}
+\usepackage{graphicx} 
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{forest}
+\usetikzlibrary{shadows}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstset{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    showspaces=false,                
+    language=C++
+}
+\begin{document}
+\begin{center}
+    \huge \textbf{Dynamic Programming}
+    \vspace{0.5cm}
+\end{center}
+\section*{Introduccion}
+Para introducirnos en programacion dinamica podemos tomar en cuenta el ejemplo mas conocido, el cual es la sucesion de fibonacci, para ello tenemos la solucion de forma recursiva:
+\begin{equation}
+    f(n)=
+    \begin{cases}
+        0,& si: n=0 \\
+        1,& si: n=1 \\
+        f(n-1)+f(n-2),& si: n>1
+    \end{cases}
+\end{equation}
+Pero esta solucion es muy poco optima para casos grandes ya que su complejidad es exponencial, es decir $O(2^n)$, por lo cual revisaremos cual es su mayor problema:\par
+\begin{forest}
+  for tree={
+    circle,
+    draw=blue!60,
+    fill=blue!10,
+    thick,
+    minimum size=0.5cm,
+    inner sep=1pt,
+    font=\sffamily\bfseries,
+    edge={-stealth, gray!60, line width=1pt},
+    l sep=0.5cm, 
+    s sep=0.8cm 
+  }
+  [f(5)
+    [f(4)
+      [f(3),fill=orange!20 
+        [f(2)
+        [f(1)]
+        [f(0)]
+        ]
+        [f(1)]
+      ]
+      [f(2)
+        [f(1)]
+        [f(0)]
+      ]
+    ]
+    [f(3),fill=orange!20 
+      [f(2)
+        [f(1)]
+        [f(0)]
+      ]
+      [f(1)]
+    ]
+  ]
+\end{forest}
+\par
+Como se puede ver el mayor problema de la recursion es que los calculos se repiten, podemos ver que $f(3)$ se calcula dos veces, para numeros mas grandes estos calculos repetidos se multiplican, para ello podemos utilizar un vector el cual guarde los datos ya calculados:
+\begin{lstlisting}
+#define ll long long
+vector<ll>memo(N+1,-1);
+ll fib(ll n){
+    if(memo[n]!=-1)return memo[n];
+    if(n==0||n==1)return n;
+    return memo[n]=fib1(n-1)+fib1(n-2);
+}
+\end{lstlisting}
+Utilizando la memorizacion podemo reducir la complejidad exponencail en lineal, es decir $O(n)$. Al igual que la memorizacion podemos usar otros dos conceptos de la programacion dinamica:
+\subsection*{Push}
+Para entender esta parte de programación dinámica podemos tomar en cuenta el ejemplo de fibonacci de nuevo, tomemos en cuenta el elemento $fib(i)$, si nos damos cuenta este número contribuye a la suma de los dos siguientes elementos es decir $fib(i+1)$ y $fib(i+2)$.
+\begin{lstlisting}
+void push_fib(){
+    vector<ll>dp(N+2,0); 
+    dp[0]=0;
+    dp[1]=1;
+    for(int i=0;i<N;i++){
+        if(i+1<=N)dp[i+1]+=dp[i];
+        if(i+2<=N)dp[i+2]+=dp[i];
+    }
+}
+\end{lstlisting}
+Un ejemplo donde el enfoque \textit{Push} brilla es el problema de los saltos: Si una rana está en la posición $i$ y puede saltar a $i+1, i+2$ o $i+3$, es mucho más natural "empujar" el valor actual a los tres destinos posibles que intentar calcular quiénes llegan al destino actual.
+\begin{lstlisting}
+vector<ll>dp(N+4,0);
+dp[0]=1;
+for(int i=0;i<N;i++){
+    if(dp[i]==0)continue;
+    dp[i+1]+=dp[i];
+    dp[i+2]+=dp[i];
+    dp[i+3]+=dp[i];
+}
+\end{lstlisting}
+\subsection*{Pull}
+El enfoque \textit{Pull} es el más intuitivo y común en programación dinámica. En este caso, nos paramos en el estado actual $i$ y "traemos" (pull) los resultados de subproblemas que ya han sido resueltos previamente para calcular el valor presente.
+\begin{lstlisting}
+void pull_fib() {
+    vector<ll>dp(N+1,0);
+    dp[0]=0;
+    dp[1]=1;
+    for(int i=2;i<=N;i++) {
+        dp[i]=dp[i-1]+dp[i-2];
+    }
+}
+\end{lstlisting}
+\end{document}

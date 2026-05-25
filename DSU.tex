@@ -1,0 +1,86 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc} 
+\usepackage[spanish]{babel} 
+\usepackage{tikz}
+\usepackage{graphicx} 
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstset{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    showspaces=false,                
+    language=C++
+}
+\begin{document}
+\begin{center}
+    \huge \textbf{Estructura de Datos: DSU}
+    \vspace{0.5cm}
+\end{center}
+La estructura \emph{Disjoint Set Union} (DSU), también llamada \emph{Union-Find}, permite gestionar una partición de un conjunto de elementos en varios conjuntos disjuntos. Cada conjunto está identificado por un \textbf{representante}, que suele ser el nodo raíz del árbol que los agrupa.
+
+Sea $V$ un conjunto de tamaño $n$, inicialmente cada elemento $v_i$ es el representante de su propio conjunto de un solo elemento:
+\begin{center}
+    $V=\{v_1, v_2, v_3, \dots, v_n\}$    
+\end{center}
+
+
+
+Esta estructura destaca por dos operaciones altamente eficientes:
+\begin{itemize}
+    \item \textbf{Find}: Determina a qué conjunto pertenece un elemento devolviendo su representante.
+    \item \textbf{Union}: Fusiona dos conjuntos distintos en uno solo.
+\end{itemize}
+
+\section{Construcción e Inicialización}
+Para implementar DSU, utilizamos un vector $P$ para almacenar el padre de cada nodo y un vector $SZ$ para registrar el tamaño de cada conjunto. Inicialmente, cada nodo es su propio padre ($P[i] = i$) y el tamaño de cada conjunto es 1.
+
+\begin{lstlisting}[language=C++, caption=Constructor de la clase DSU]
+vector<int> p, sz;
+void build(int n) {
+    p.resize(n + 1);
+    sz.assign(n + 1, 1);
+    for(int i = 1; i <= n; i++) p[i] = i;
+}
+\end{lstlisting}
+
+\section{Find}
+Para hallar la raíz de un nodo $i$, ascendemos recursivamente por sus padres hasta encontrar un nodo tal que $P[i] == i$. 
+\textbf{Optimización (Path Compression):} Durante la recursión, actualizamos $P[i]$ directamente con el valor de la raíz hallada. Esto "aplana" el árbol, acelerando futuras consultas de forma drástica.
+
+\begin{lstlisting}[language=c++, caption=Funcion Find con Compresion de Caminos]
+int find(int i){
+    if(p[i]==i)return i;
+    return p[i]=find(p[i]); 
+}   
+\end{lstlisting}
+
+
+
+\section{Unite}
+Al unir dos conjuntos, primero verificamos que no tengan ya el mismo representante. 
+\textbf{Optimización (Union by Size):} Conectamos siempre el árbol más pequeño bajo la raíz del árbol más grande. Esto mantiene la altura del árbol mínima ($O(\log n)$), evitando que la estructura se degrade.
+
+\begin{lstlisting}[language=c++, caption=Funcion Union por Tamaño]
+void unite(int i, int j) {
+    int ri=find(i);
+    int rj=find(j);
+    if(ri!=rj) {
+        if(sz[ri]<sz[rj])swap(ri,rj);
+        p[rj]=ri;
+        sz[ri]+=sz[rj];
+    }
+}
+\end{lstlisting}
+\end{document}

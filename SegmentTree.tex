@@ -1,0 +1,203 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{forest}
+\usepackage{xcolor}
+\usepackage{listings}
+\setlength{\parskip}{0.5em}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstset{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=8pt,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=4,
+    frame=single,
+    columns=flexible,
+    language=C++
+}
+\begin{document}
+\begin{center}
+    {\Huge \textbf{Segment Tree}}
+\end{center}
+\vspace{0.5cm}
+Un Segment Tree es una estructura de datos utilizada para realizar consultas y actualizaciones sobre segmentos de un arreglo de manera eficiente.\par
+La estructura se representa mediante un árbol binario, donde cada nodo almacena información correspondiente a un intervalo del arreglo original.\par
+Por ejemplo, para un arreglo de tamaño $N = 8$, los segmentos se dividen de la siguiente manera:
+\begin{center}
+\begin{forest}
+for tree={
+    draw,
+    rounded corners,
+    fill=gray!10,
+    minimum width=1.25cm,
+    minimum height=0.25cm,
+    s sep=8mm,
+    l sep=10mm,
+    align=center
+}
+[{[1,8]}
+    [{[1,4]}
+        [{[1,2]}
+            [{1}][{2}]
+        ]
+        [{[3,4]}
+            [{3}][{4}]
+        ]
+    ]
+    [{[5,8]}
+        [{[5,6]}
+            [{5}][{6}]
+        ]
+        [{[7,8]}
+            [{7}][{8}]
+        ]
+    ]
+]
+\end{forest}
+\end{center}
+\section*{Construcción con Recursividad}
+\subsection*{Build}
+Para implementar un Segment Tree se utiliza normalmente un vector de tamaño $4N$, donde $N$ representa la cantidad de elementos del arreglo original.\par
+Debido a que la estructura es un árbol binario, los hijos de cada nodo pueden calcularse mediante índices, para una implementación indexada desde $0$:
+\[
+\begin{aligned}
+\text{Hijo izquierdo} &= 2i + 1 \\
+\text{Hijo derecho} &= 2i + 2
+\end{aligned}
+\]
+Mientras que el padre de un nodo puede obtenerse con:
+\[
+\text{Padre}(i)=\frac{i-1}{2}
+\]
+La idea de la construcción recursiva consiste en dividir cada segmento en dos subsegmentos hasta llegar a segmentos de tamaño $1$, es decir, cuando:
+\[left = right\]
+Cada hoja almacena un valor del arreglo original. Posteriormente, cada nodo interno se calcula combinando la información de sus dos hijos.
+\begin{lstlisting}
+const int INF = 1e9 + 1;
+const int N = 3e5;
+vector<int> st(4 * N);
+vector<int> a(N);
+struct ST {
+    void calc(int nod) {
+        st[nod] = max(st[2 * nod + 1],st[2 * nod + 2]);
+    }
+    void build(int nod, int left, int right) {
+        if(left == right) st[nod] = a[left];
+        else {
+            int mid = (left + right) / 2;
+            build(2 * nod + 1, left, mid);
+            build(2 * nod + 2, mid + 1, right);
+            calc(nod);
+        }
+    }
+};
+\end{lstlisting}
+La construccion tiene una complejidad de $O(n)$
+\subsection*{Update}
+La operación \texttt{update} permite modificar el valor de una posición del arreglo original.\par
+Para actualizar un valor $val$ ubicado en el índice $idx$, se comienza desde la raíz del árbol y se desciende recursivamente hasta llegar a la hoja correspondiente a dicho índice.\par
+En cada paso se calcula el punto medio del segmento actual para decidir si el índice pertenece al subárbol izquierdo o al derecho.\par
+Cuando se alcanza la hoja correspondiente, el valor es actualizado tanto en el arreglo original como en el Segment Tree. Posteriormente, la recursión retorna hacia la raíz recalculando todos los nodos cuyos segmentos contienen al índice actualizado.
+\begin{lstlisting}
+void upd(int nod, int left, int right,int idx, int val){
+    if(left == right){
+        st[nod] = val;
+        a[idx] = val;
+    }
+    else{
+        int mid = (left + right) / 2;
+        if(idx <= mid)upd(2 * nod + 1,left, mid,idx, val);
+        else upd(2 * nod + 2,mid + 1, right,idx, val);
+        calc(nod);
+    }
+}
+\end{lstlisting}
+Cada operación \texttt{update} tiene complejidad de $O(\log N)$ debido a que únicamente se recorre un camino desde la raíz hasta una hoja del árbol.
+\subsection*{Query}
+La operación \texttt{query} permite obtener información sobre un segmento del arreglo, por ejemplo: máximo, mínimo, suma, gcd, multiplicacion, entre otros, en este caso, la consulta devuelve el valor máximo en un rango $[l,r]$.\par
+La idea consiste en recorrer únicamente los segmentos que contribuyen a la respuesta. Durante la recursión pueden ocurrir tres casos:
+\begin{enumerate}
+    \item El segmento actual no intersecta con el rango buscado. En este caso se retorna un valor neutro.
+    \item El segmento actual está completamente contenido dentro del rango buscado. Entonces el valor almacenado en el nodo puede utilizarse directamente.
+    \item El segmento actual intersecta parcialmente el rango. Se divide la consulta en ambos hijos y posteriormente se combinan las respuestas.
+\end{enumerate}
+\begin{lstlisting}
+int query(int nod, int left, int right,int l, int r){
+    if(right < l || r < left)return -INF;
+    if(l <= left && right <= r)return st[nod];
+    int mid = (left + right) / 2;
+    int q1 = query(2 * nod + 1,left, mid,l, r);
+    int q2 = query(2 * nod + 2,mid + 1, right,l, r);
+    return max(q1, q2);
+}
+\end{lstlisting}
+La complejidad de cada consulta es de $O(\log N)$ ya que en cada nivel del árbol solamente se visitan los nodos necesarios para responder la consulta.
+\section*{Problemas}
+\subsection*{\href{https://codeforces.com/edu/course/2/lesson/4/1/practice/contest/273169/problem/C}{Number of Minimums on a Segment}}
+Dado un arreglo, hallar en un rango $[L, R]$ el valor mínimo y su frecuencia. Para ello se guarda un \texttt{pair<int, int>} donde \texttt{first} es el mínimo y \texttt{second} la frecuencia, el elemento neutro para \texttt{query} es \texttt{\{INF, 0\}}, por ultimo si los mínimos son iguales, se suman las frecuencias. Si son distintos, sobrevive el par con el menor valor.
+\begin{lstlisting}[language=C++]
+const int INF=1e9+1;
+const int N=3e5;
+vector<pair<int,int>>st(4*N);
+vector<int>a(N); 
+struct ST{
+    pair<int,int> merge(pair<int,int> a,pair<int,int> b){
+        if(a.first==b.first)return {a.first,a.second+b.second};
+        if(a.first<b.first)return a;
+        return b;
+    }
+    void calc(int nod){
+        st[nod]=merge(st[2*nod+1],st[2*nod+2]);
+    }
+    void build(int nod,int left,int right){
+        if(left==right){
+            st[nod].first=a[left];
+            st[nod].second=1;
+        }
+        else{
+            int m=(left+right)/2;
+            build(2*nod+1,left,m);
+            build(2*nod+2,m+1,right);
+            calc(nod);
+        }
+    }
+    void upd(int nod,int left,int right,int idx,int val){
+        if(left==right){
+            st[nod].first=val;
+            st[nod].second=1;
+            a[idx]=val;
+        }
+        else{
+            int m=(left+right)/2;
+            if(idx<=m)upd(2*nod+1,left,m,idx,val);
+            else upd(2*nod+2,m+1,right,idx,val);
+            calc(nod);
+        }
+    }
+    pair<int,int> query(int nod,int left,int right,int ql,int qr){
+        if(right<ql || left>qr)return {INF,0};
+        if(ql<=left && right<=qr)return st[nod];
+        int m=(left+right)/2;
+        return merge(query(2*nod+1,left,m,ql,qr),query(2*nod+2,m+1,right,ql,qr));
+    }
+};
+\end{lstlisting}
+\end{document}

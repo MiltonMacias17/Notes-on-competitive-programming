@@ -1,0 +1,198 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{vector}
+\usepackage{listings}
+\usepackage{xcolor}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstset{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    showspaces=false,                
+    language=C++
+}
+\begin{document}
+\begin{center}
+    \huge \textbf{Basic Maths}
+    \vspace{0.5cm}
+\end{center}
+La mayoría de algoritmos de divisibilidad requieren revisar todos los números, lo cual implica una complejidad de $O(n)$. Para evitar esta complejidad, podemos tomar en cuenta lo siguiente:\par
+Supongamos que $n$ tiene un divisor $d$ y un $k$ tal que $n = d \cdot k$. Si intentamos que tanto $d$ como $k$ sean mayores que $\sqrt{n}$ ($d > \sqrt{n}$ y $k > \sqrt{n}$), entonces al calcular su producto veríamos que $d \cdot k > \sqrt{n} \cdot \sqrt{n}$, lo cual implica $d \cdot k > n$. Esto es una contradicción, por lo cual se puede afirmar que en cada pareja de divisores, al menos uno debe ser $\le \sqrt{n}$. Esto permite reducir la complejidad de $O(n)$ a $O(\sqrt{n})$.
+\section*{Divisores}
+Dado un número $n$, para hallar todos sus divisores con complejidad $O(\sqrt{n})$, podemos iterar hasta la raíz y notar que si $i$ es un divisor, entonces $n/i$ también lo es.
+\begin{lstlisting}[language=C++]
+vector<int>div(int n){
+    vector<int>d;
+    for(int i=1;(long long)i*i<=n;i++){
+        if(n%i==0){
+            d.push_back(i);
+            if(i!=n/i)d.push_back(n/i);
+        }
+    }
+    sort(d.begin(),d.end());
+    return d;
+}
+\end{lstlisting}
+\section*{Número de Divisores}
+Usando la factorización en números primos de $n$, donde $p_i$ es un número primo y $e_i$ su exponente, expresamos $n$ como:
+\begin{equation}
+    n = p_1^{e_1} \cdot p_2^{e_2} \cdot p_3^{e_3} \cdots p_k^{e_k}
+\end{equation}
+El número de divisores $d(n)$ se obtiene mediante todas las combinaciones posibles de los exponentes de sus factores primos (desde $0$ hasta $e_i$):
+\begin{equation}
+    d(n) = (e_1 + 1) \cdot (e_2 + 1) \cdot (e_3 + 1) \cdots (e_k + 1)
+\end{equation}
+Si tomamos un número con dos factores primos distintos, $n = p_1^{e_1} \cdot p_2^{e_2}$, podemos organizar todos sus divisores en una tabla de doble entrada. Cada celda representa un divisor único:
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{c|ccccc}
+$\times$ & $1$ & $p_2$ & $p_2^2$ & $\dots$ & $p_2^{e_2}$ \\ \hline
+$1$ & $1$ & $p_2$ & $p_2^2$ & $\dots$ & $p_2^{e_2}$ \\
+$p_1$ & $p_1$ & $p_1 p_2$ & $p_1 p_2^2$ & $\dots$ & $p_1 p_2^{e_2}$ \\
+$p_1^2$ & $p_1^2$ & $p_1^2 p_2$ & $p_1^2 p_2^2$ & $\dots$ & $p_1^2 p_2^{e_2}$ \\
+$\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\ddots$ & $\vdots$ \\
+$p_1^{e_1}$ & $p_1^{e_1}$ & $p_1^{e_1} p_2$ & $p_1^{e_1} p_2^2$ & $\dots$ & $p_1^{e_1} p_2^{e_2}$ \\
+\end{tabular}
+\end{center}
+\begin{lstlisting}[language=C++]
+#define ll long long
+ll cntd(ll n){
+    ll cnt=1;
+    for(ll i=2;i*i<=n;i++){
+        if(n%i==0){
+            ll exp=0;
+            while(n%i==0){
+                n/=i;
+                exp++;
+            }
+            cnt*=(exp+1);
+        }
+    }
+    if(n>1)cnt*=2;
+    return cnt;
+}
+\end{lstlisting}
+Para múltiples consultas en un rango acotado ($10^6$), podemos aplicar una técnica similar a la Criba de Eratóstenes para precalcular el número de divisores de todos los números en $O(M \log M)$:
+\begin{lstlisting}[language=C++]
+const int M=1e6;
+vector<int>p(M+1,0);
+void pre(){
+    for(int i=1;i<=M;i++){
+        for(int j=i;j<=M;j+=i){
+            p[j]++;
+        }
+    }
+}
+\end{lstlisting}
+\section*{Suma de Divisores}
+Para calcular la suma de todos los divisores de $n$, denotada como $\sigma(n)$, utilizamos de nuevo su factorización prima:
+\begin{equation}
+    n = p_1^{e_1} \cdot p_2^{e_2} \cdots p_k^{e_k}
+\end{equation}
+Considerando la tabla de divisores anterior, la suma de todos los elementos de la matriz se puede obtener multiplicando la suma de las opciones de cada factor primo. La suma de las potencias de un primo $p$ desde $0$ hasta $e$ es una progresión geométrica:
+\begin{equation}
+    \sigma(p^e) = \sum_{k=0}^{e} p^k = 1 + p + p^2 + \dots + p^e = \frac{p^{e+1}-1}{p-1}
+\end{equation}
+Dado que $\sigma(n)$ es una función multiplicativa, la suma total de los divisores es el producto de las sumas individuales de cada factor primo:
+\begin{equation}
+    \sigma(n) = \prod_{i=1}^{k} \frac{p_i^{e_i+1}-1}{p_i-1}
+\end{equation}
+\begin{lstlisting}[language=C++]
+#define ll long long
+ll sumd(ll n) {
+    ll tot=1;
+    for(ll i=2;i*i<=n;i++){
+        if(n%i==0){
+            int e=0;
+            while(n%i==0){
+                e++;
+                n/=i;
+            }
+            ll cs=0;
+            ll p=1;
+            for(int j=0;j<=e;j++){
+                cs+=p;
+                p*=i;
+            }
+            tot*=cs;
+        }
+    }
+    if(n>1)tot*=(1+n);
+    return tot;
+}
+\end{lstlisting}
+\section*{GCD (Greatest Common Divisor)}
+Sean dos números enteros $a$ y $b$, podemos hallar el valor de $\gcd(a,b)$ utilizando el Algoritmo de Euclides. Este algoritmo reduce el valor de $a$ (el máximo) usando módulos hasta que $b$ sea $0$. En cada iteración, los valores cambian: $a$ pasa a ser $b$ (divisor) y $b$ pasa a ser $a \bmod b$ (residuo). El algoritmo termina y halla el valor cuando $b=0$.
+\begin{lstlisting}[language=C++]
+// Enfoque Recursivo
+int gcd(int a,int b){
+    if(b==0)return a;
+    return gcd(b,a%b);
+}
+// Enfoque Iterativo
+int gcd(int a,int b){
+    while(b){
+        a%=b;
+        swap(a,b);
+    }
+    return a;
+}
+\end{lstlisting}
+Algunas propiedades fundamentales de $\gcd$ a considerar son:
+\begin{enumerate}
+    \item \textbf{Conmutatividad:} $\gcd(a,b) = \gcd(b,a)$.
+    \item \textbf{Asociatividad:} $\gcd(a,\gcd(b,c)) = \gcd(\gcd(a,b),c)$. (Útil para hallar el GCD de un arreglo de números).
+    \item \textbf{Distributividad:} $\gcd(m \cdot a, m \cdot b) = m \cdot \gcd(a,b)$ o $\gcd(a,\text{lcm}(b,c))=\text{lcm}(gcd(a,b),gcd(a,c))$.
+    \item Sea $g = \gcd(a,b)$, todos los divisores de $g$ también son divisores comunes de $a$ y $b$.
+    \item Casos con cero: $\gcd(a,0) = a$ (asumiendo $a > 0$). Si ambos son cero, $\gcd(0,0)$ es indefinido matemáticamente (aunque en programación suele devolver $0$).
+    \item Sea $g = \gcd(a,b)$. Si $a$ divide al producto $b \cdot c$, entonces se cumple que $\frac{a}{g}$ divide a $c$.
+    \item Sea $g = \gcd(a,b)$, entonces se cumple que $\gcd\left(\frac{a}{g}, \frac{b}{g}\right) = 1$. Es decir, al dividir ambos números por su máximo común divisor, los resultados siempre son coprimos.
+    \item Para cualquier entero $m$, se cumple la propiedad fundamental del Algoritmo de Euclides: $\gcd(a,b) = \gcd(a + m \cdot b, b)$.
+    \item Si $m$ es un divisor común de $a$ y $b$, se cumple que: $\gcd\left(\frac{a}{m}, \frac{b}{m}\right) = \frac{\gcd(a,b)}{m}$.
+    \item Sean $a_1$ y $a_2$ números coprimos ($\gcd(a_1, a_2) = 1$), se cumple que: $\gcd(a_1 \cdot a_2, b) = \gcd(a_1, b) \cdot \gcd(a_2, b)$.
+    \item Desde la factorización prima, si $a = p_1^{e_1} \cdot p_2^{e_2} \cdots p_k^{e_k}$ y $b = p_1^{f_1} \cdot p_2^{f_2} \cdots p_k^{f_k}$, entonces: $\gcd(a,b) = p_1^{\min(e_1,f_1)} \cdot p_2^{\min(e_2,f_2)} \cdots p_k^{\min(e_k,f_k)}$.
+    \item Para cualesquiera enteros $a$ y $b$, y una base $n$, se cumple que: $\gcd(n^a - 1, n^b - 1) = n^{\gcd(a,b)} - 1$.
+    \item Sean $P_0 = (0,0)$ y $P_1 = (x,y)$. El número de segmentos en los que se divide la línea que une ambos puntos por coordenadas enteras es $\gcd(|x|, |y|)$. El número total de puntos con coordenadas enteras (lattice points) en ese segmento, incluyendo los extremos, es $\gcd(|x|, |y|) + 1$.
+\end{enumerate}
+\section*{LCM (Least Common Multiple)}
+El Mínimo Común Múltiplo de dos enteros $a$ y $b$, denotado como $\text{lcm}(a,b)$, es el entero positivo más pequeño que es divisible simultáneamente por $a$ y por $b$.\par
+La forma más eficiente de calcular el LCM es utilizando su estrecha relación matemática con el Máximo Común Divisor (GCD). La fórmula fundamental que los conecta es:
+\begin{equation}
+    \text{lcm}(a,b) = \frac{a \cdot b}{\gcd(a,b)}
+\end{equation}
+\begin{lstlisting}[language=C++]
+typedef long long ll;
+ll lcm(ll a,ll b){
+    if(a==0||b==0)return 0;
+    return(a/gcd(a,b))*b;
+}
+\end{lstlisting}
+Algunas propiedades fundamentales de $\text{lcm}$ a considerar son:\par
+\begin{enumerate}
+    \item \textbf{Conmutatividad:} $\text{lcm}(a,b) = \text{lcm}(b,a)$.
+    \item \textbf{Asociatividad:} $\text{lcm}(a,\text{lcm}(b,c)) = \text{lcm}(\text{lcm}(a,b),c)$. (Se usa para calcular el LCM de un arreglo completo iterando y acumulando el resultado).
+    \item \textbf{Distributividad:} $\text{lcm}(m \cdot a, m \cdot b) = m \cdot \text{lcm}(a,b)$ o $\text{lcm}(a,\gcd(b,c))=\gcd(\text{lcm}(a,b),\text{lcm}(a,c))$.
+    \item Para cualesquiera dos enteros positivos, $\gcd(a,b) \cdot \text{lcm}(a,b) = a \cdot b$.
+    \item Desde la factorización prima, si $a = p_1^{e_1} \cdot p_2^{e_2} \cdots p_k^{e_k}$ y $b = p_1^{f_1} \cdot p_2^{f_2} \cdots p_k^{f_k}$, entonces a diferencia del GCD (que toma el mínimo), el LCM toma el máximo exponente para cada primo: \\ $\text{lcm}(a,b) = p_1^{\max(e_1,f_1)} \cdot p_2^{\max(e_2,f_2)} \cdots p_k^{\max(e_k,f_k)}$.
+    \item Si $a$ divide a $b$, entonces $\text{lcm}(a,b) = b$.
+    \item Cualquier múltiplo común de $a$ y $b$ es garantizadamente un múltiplo de $\text{lcm}(a,b)$.
+\end{enumerate}
+\section*{Pequeño Teorema de Fermat}
+Sean $p$(numero primo) y $a$ coprimos($\gcd(a,p)=1$) se cumple:
+\begin{equation}
+    a^{p-1}\equiv 1 (mod p)
+\end{equation}
+\end{document}
