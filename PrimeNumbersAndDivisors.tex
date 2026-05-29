@@ -1,0 +1,66 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{forest}
+\usepackage{xcolor}
+\usepackage{listings}
+\setlength{\parskip}{0.5em}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstset{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=8pt,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=4,
+    frame=single,
+    columns=flexible,
+    language=C++
+}
+\begin{document}
+\begin{center}
+    \huge \textbf{Criba de Eratostenes}
+    \vspace{0.5cm}
+\end{center}
+Para hallar un conjunto de Numeros primos se utiliza el algortimo de la Criba de Eratostenes, el cual halla numeros primos descartando los multimplos de los numeros no seleccionados como multiplos de otros, exeptuando los valores de $0$ y $1$ desde un inicio.
+\section{Criba Simple}
+Para hallar los numero primos tenemos en un rango de $0$ a $10^7$ se utiliza las siguientes optimizaciones para reducir el tiempo de ejecucion y mejorar la complejidad, lo que actulemte nos detiene de aumentar el rango es la memoria.
+\begin{itemize}
+    \item Como primera mejora de optimizacion se tiene que para todos los numeros entre los rangos de la criba solo es necesario iterar hasta $sqrt(10^7)$
+    \item para evitar recorrer numeros inecesarios o ya marcados al momento de descartar multiplos se empieza a recorrer desde los cuadrados de $i$ es decir $i^2$.
+\end{itemize}
+\begin{lstlisting}
+const int NN=1e7;
+vector<int>vp;
+vector<bool>vv(NN+1,true); 
+void criba2(){
+    vv[0]=false;vv[1]=false;
+    for(ll i=2;i*i<=NN;i++){
+        if(vv[i]){
+            for(ll j=i*i;j<=NN;j+=i){
+                vv[j]=false;
+            }
+        }
+    }
+    for(int i=0;i<=NN;i++){
+        if(vv[i])vp.push_back(i);
+    }
+}
+\end{lstlisting}
+\end{document}
