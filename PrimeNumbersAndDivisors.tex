@@ -35,33 +35,78 @@
 }
 \begin{document}
 \begin{center}
-    \huge \textbf{Criba de Eratostenes}
+    \huge \textbf{sieve of eratosthenes}
     \vspace{0.5cm}
 \end{center}
-Para hallar un conjunto de Numeros primos se utiliza el algortimo de la Criba de Eratostenes, el cual halla numeros primos descartando los multimplos de los numeros no seleccionados como multiplos de otros, exeptuando los valores de $0$ y $1$ desde un inicio.
-\section{Criba Simple}
-Para hallar los numero primos tenemos en un rango de $0$ a $10^7$ se utiliza las siguientes optimizaciones para reducir el tiempo de ejecucion y mejorar la complejidad, lo que actulemte nos detiene de aumentar el rango es la memoria.
+El algoritmo de la Criba de Eratóstenes es una herramienta fundamental para hallar todos los números primos en un segmento de $1$ a $N$. Su lógica base consiste en asumir inicialmente que todos los números son primos y, al iterar desde el $2$ en adelante, ir marcando los múltiplos de cada primo encontrado como compuestos, exceptuando siempre el $0$ y el $1$.
+\section{sieve}
+Para llegar a rangos de $10^7$, nuestro verdadero enemigo es la memoria. Para mitigar esto, aplicamos las siguientes optimizaciones matemáticas:
 \begin{itemize}
-    \item Como primera mejora de optimizacion se tiene que para todos los numeros entre los rangos de la criba solo es necesario iterar hasta $sqrt(10^7)$
-    \item para evitar recorrer numeros inecesarios o ya marcados al momento de descartar multiplos se empieza a recorrer desde los cuadrados de $i$ es decir $i^2$.
+    \item Es suficiente iterar usando los números primos que no excedan $\sqrt{N}$.
+    \item Al procesar un primo $i$, empezamos a tachar sus múltiplos desde $i^2$.
+    \item Dado que el único número primo par es el 2, todos los demás pares son compuestos. Al ignorar los pares, el tamaño del arreglo de memoria se reduce a la mitad. Para implementarlo, hacemos que el índice $i$ represente al número impar $2i + 1$.
 \end{itemize}
 \begin{lstlisting}
-const int NN=1e7;
-vector<int>vp;
-vector<bool>vv(NN+1,true); 
-void criba2(){
-    vv[0]=false;vv[1]=false;
-    for(ll i=2;i*i<=NN;i++){
+const int NN = 1e7;
+vector<int> vp;
+vector<bool> vv(NN / 2 + 1, true); 
+void sieve(){
+    vp.push_back(2);
+    for(long long i = 1; (2 * i + 1) * (2 * i + 1) <= NN; i++){
         if(vv[i]){
-            for(ll j=i*i;j<=NN;j+=i){
-                vv[j]=false;
+            long long p = 2 * i + 1;
+            for(long long j = 2 * i * (i + 1); j <= NN / 2; j += p)
+                vv[j] = false;
+        }
+    }
+    for(int i = 1; i <= NN / 2; i++)
+        if(vv[i]) vp.push_back(2 * i + 1);
+}
+\end{lstlisting}
+\section{Bitwise Sieve}
+El problema principal de la criba estándar es el desperdicio de espacio a nivel estructural. En la mayoría de las arquitecturas, el tipo de dato booleano (\texttt{bool}) utiliza 1 byte completo de memoria. Sin embargo, para representar si un número es primo (1) o compuesto (0), en realidad solo necesitamos un único bit.\par
+En lugar de crear un arreglo de booleanos, se crea un arreglo de números enteros. Dado que un número entero estándar tiene 32 bits, se pueden usar los bits individuales de ese entero para comprimir la información de 32 números distintos en un solo espacio de memoria. Si sumamos esta optimización de bits con la exclusión de números pares, el tamaño del arreglo se reduce drásticamente a $N/64$. Esto permite empujar el límite hasta aproximadamente $10^8$.
+\begin{lstlisting}
+const int N=1e8;
+int p[N/64+1];
+vector<int>pr;
+#define check(n)(p[n>>5]&(1<<(n&31)))
+#define set(n)(p[n>>5]|=(1<<(n&31)))
+void bsieve(){
+    pr.push_back(2);
+    for(ll i=3;i*i<=N;i+=2) {
+        if(!check(i/2)) {
+            for(ll j=i*i;j<=N;j+=2*i){
+                setBit(j/2);
             }
         }
     }
-    for(int i=0;i<=NN;i++){
-        if(vv[i])vp.push_back(i);
+    for(int i=3;i<=N;i+=2){
+        if(!check(i/2))pr.push_back(i);
     }
 }
 \end{lstlisting}
-\section*{Problemas}
+\section{Segmented Sieve}
+La Criba Segmentada se usa cuando necesitas hallar primos en un rango específico $[L, R]$. El límite superior $R$ puede ser inmensamente grande, soportando valores de hasta $10^{12}$.\par
+Sin embargo, el tamaño de tu "ventana" de memoria siempre será exactamente $(R - L + 1)$. Generalmente, las restricciones de los problemas indicarán que la diferencia entre $L$ y $R$ no supere los $10^5$ o $10^6$.\par 
+La lógica consiste en precalcular los primos hasta $\sqrt{R}$ con una criba normal, y usar esos primos para tachar los múltiplos únicamente dentro del rango $[L, R]$. Como nuestro arreglo local empieza en el índice 0, mapeamos el valor $j$ al índice $j - L$.
+\begin{lstlisting}
+void segsieve(ll L,ll R){
+    vector<bool>vv(R-L+1,true);
+    if(L==1)vv[0]=false;
+    for(int p:vp){
+        if(1LL*p*p>R)break;
+        ll st=max(1LL*p*p,(L+p-1)/p*p);
+        for(ll j=st;j<=R;j+=p){
+            vv[j-L]=false;
+        }
+    }
+    for(ll i=0;i<=R-L;i++){
+        if(vv[i]){
+            cout<<(i+L)<<'\n';
+        }
+    }
+}
+\end{lstlisting}
+
 \end{document}
