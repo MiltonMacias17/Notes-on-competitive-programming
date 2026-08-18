@@ -1,0 +1,121 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{tikz}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.96}
+\lstset{
+    language=C++,
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\small,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=4,
+    frame=single,
+    rulecolor=\color{gray!30}
+}
+\begin{document}
+\begin{center}
+    {\huge \textbf{Principio de Inclusión-Exclusión (PIE)}} \\[0.2cm]
+    \vspace{0.5cm}
+\end{center}
+El \textbf{Principio de Inclusión-Exclusión (PIE)} es una técnica combinatoria fundamental para calcular el tamaño de la unión de múltiples conjuntos finitos. Permite corregir intersecciones reetidas.\par
+Sean los conjuntos finitos $C_1, C_2, C_3, \dots, C_N$. El cardinal de su unión se define matemáticamente como:
+\begin{equation}
+    \left| \bigcup_{i=1}^{N} C_i \right| = \sum_{i=1}^{N} |C_i| - \sum_{1 \leqslant i < j \leqslant N} |C_i \cap C_j| + \sum_{1 \leqslant i < j < k \leqslant N} |C_i \cap C_j \cap C_k| - \dots + (-1)^{N-1} |C_1 \cap C_2 \cap \dots \cap C_N|
+\end{equation}
+De forma compacta utilizando sumatorias sobre subconjuntos:
+\begin{equation}
+    \left| \bigcup_{i=1}^{N} C_i \right| = \sum_{\emptyset \neq S \subseteq \{1, \dots, N\}} (-1)^{|S|-1} \left| \bigcap_{i \in S} C_i \right|
+\end{equation}
+Donde $S$ representa un subconjunto no vacío del índice de nuestros conjuntos, y $|S|$ es la cantidad de elementos en dicho subconjunto.\par
+Para $N = 3$ conjuntos, el principio suma los conjuntos individuales, resta las intersecciones dobles (que fueron contadas dos veces) y finalmente vuelve a sumar la intersección triple (que fue restada por completo en el paso anterior).
+\begin{center}
+\begin{tikzpicture}[scale=1.2, fill opacity=0.35, draw opacity=1]
+    \fill[red!80!white] (90:1) circle (1.5);
+    \fill[blue!80!white] (210:1) circle (1.5);
+    \fill[green!80!white] (330:1) circle (1.5);
+    \draw[thick] (90:1) circle (1.5) node [above=1cm, opacity=1] {$C_1$};
+    \draw[thick] (210:1) circle (1.5) node [below left=1cm, opacity=1] {$C_2$};
+    \draw[thick] (330:1) circle (1.5) node [below right=1cm, opacity=1] {$C_3$};
+    \node[opacity=1] at (90:0) {\small $C_1 \cap C_2 \cap C_3$};
+\end{tikzpicture}
+\end{center}
+La definición de ``intersección'' varía drásticamente según la naturaleza del problema matemático:
+\begin{itemize}
+    \item \textbf{Divisibilidad y Aritmética (Coprimalidad):}
+    Si deseamos contar múltiplos comunes de ciertos números, la intersección de ser divisible por $a$ y $b$ equivale a ser divisible por el Mínimo Común Múltiplo:
+    \begin{equation}
+        \text{Intersección}(a, b) = \text{lcm}(a, b)
+    \end{equation}
+    \item \textbf{Condiciones Booleanas o Bitmasks:}
+    Si las restricciones corresponden a bits que deben estar apagados o encendidos, la intersección se calcula utilizando la operación a nivel de bits AND:
+    \begin{equation}
+        \text{Intersección}(A, B) = A \ \& \ B
+    \end{equation}
+    \item \textbf{Caminos en Grillas con Obstáculos:}
+    Si $C_i$ es el conjunto de caminos desde el origen al destino que pasan por el obstáculo $i$, la intersección representa caminos que pasan obligatoriamente por un conjunto específico de obstáculos (esto se resuelve típicamente con combinatoria y ordenamiento).
+\end{itemize}
+\section*{Ejercicios}
+\textbf{Enunciado:} Dado un número entero $N$ y tres números primos distintos $p_1, p_2$ y $p_3$, determina cuántos números en el rango $[1, N]$ \textbf{no} son divisibles por ninguno de estos tres primos.\par
+Para resolver este problema, definimos los conjuntos de la siguiente manera:
+\begin{itemize}
+    \item $C_1$: Conjunto de números en $[1, N]$ divisibles por $p_1$. Su tamaño es $\lfloor N / p_1 \rfloor$.
+    \item $C_2$: Conjunto de números en $[1, N]$ divisibles por $p_2$. Su tamaño es $\lfloor N / p_2 \rfloor$.
+    \item $C_3$: Conjunto de números en $[1, N]$ divisibles por $p_3$. Su tamaño es $\lfloor N / p_3 \rfloor$.
+\end{itemize}
+La intersección de estos conjuntos representa los números divisibles simultáneamente por sus respectivos primos. Como los números son primos entre sí, la operación de intersección (mínimo común múltiplo) equivale simplemente a la multiplicación de los mismos (por ejemplo, $|C_1 \cap C_2| = \lfloor N / (p_1 \cdot p_2) \rfloor$).\par
+\begin{equation}
+    \text{Resultado} = |U| - |C_1 \cup C_2 \cup C_3|
+\end{equation}
+Para calcular la unión $|C_1 \cup C_2 \cup C_3|$ de forma genérica y limpia, utilizamos una máscara de bits (\textit{bitmask}) que evalúa las $2^3 - 1 = 7$ combinaciones posibles de subconjuntos no vacíos.
+\begin{lstlisting}
+#include <iostream>
+#include <vector>
+using namespace std;
+#define ll long long
+int main(){    
+    ll n;cin>>n;    
+    vector<ll>p(3);
+    for(int i=0;i<3;i++)cin>>p[i];
+    ll u=0;
+    int t=1<<3;
+    for (int mask=1;mask<t;mask++){
+        ll pr=1;
+        int b=0;
+        for(int j=0;j<3;j++){
+            if((mask>>j)&1) {
+                pr*=p[j];
+                b++;
+            }
+        }
+        ll c=n/pr;
+        if(b%2==1)u+=c;
+        else u-=c;
+    }
+    cout<<n-u<<'\n';
+    return 0;
+}
+\end{lstlisting}
+\end{document}

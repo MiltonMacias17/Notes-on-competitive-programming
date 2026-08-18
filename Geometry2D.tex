@@ -1,0 +1,54 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, babel} 
+\begin{document}
+\begin{center}
+    {\huge\textbf{Geometría 2D}}
+\end{center}
+\section*{Vectores, Rectas, Semirrectas y Segmentos}
+Primero definimos algunos conceptos fundamentales:
+\begin{itemize}
+    \item \textbf{A: Vector} $\vec{V}$
+    Un vector representa una magnitud geométrica que posee tres características fundamentales: \textbf{módulo (magnitud), dirección y sentido}. En el plano cartesiano, un vector se describe mediante sus componentes:
+    \[\vec{V}=(x,y),\]
+    donde $x$ e $y$ representan los desplazamientos horizontal y vertical, respectivamente.
+    Un vector también puede obtenerse a partir de dos puntos $A$ y $B$ mediante la expresión:
+    \[\overrightarrow{AB},\]
+    la cual representa el desplazamiento desde $A$ hasta $B$. En general,
+    \[\overrightarrow{AB}\neq\overrightarrow{BA},\]
+    debido a que ambos poseen sentidos opuestos. Un vector puede trasladarse libremente en el plano sin alterar sus propiedades.
+    \item \textbf{B: Recta} $\overleftrightarrow{AB}$
+    Una recta es un conjunto infinito de puntos alineados que pasa por los puntos $A$ y $B$ y se extiende indefinidamente en ambas direcciones.
+    \item \textbf{C: Semirrecta} $\overrightarrow{AB}$
+    Una semirrecta es un conjunto de puntos que tiene origen en el punto $A$, pasa por el punto $B$ y se prolonga infinitamente en una sola dirección.
+    \item \textbf{D: Segmento} $\overline{AB}$
+    Un segmento es un conjunto finito de puntos comprendidos entre los puntos extremos $A$ y $B$, incluyendo ambos extremos.
+\end{itemize}
+\begin{center}
+\begin{tikzpicture}[scale=1.1, >=Stealth]
+    \draw[->, thick, blue] (0,0) -- (2,1);
+    \node[above] at (1, 0.5) {$\vec{V}$};
+    \draw[<->, thick, red] (3, -0.5) -- (7, 1.5);
+    \fill (4,0) circle (2pt);
+    \fill (6,1) circle (2pt);
+    \node[below] at (4,0) {$A$};
+    \node[above] at (6,1) {$B$};
+    \node at (5, 2) {$\overleftrightarrow{AB}$}; 
+    \draw[->, thick, green!60!black] (0, -3) -- (4, -2);
+    \fill (0,-3) circle (2pt);
+    \fill (2,-2.5) circle (2pt);
+    \node[below] at (0,-3) {$A$};
+    \node[above] at (2,-2.5) {$B$};
+    \node at (2, -1.5) {$\overrightarrow{AB}$};
+    \draw[thick, purple] (5, -3) -- (8, -2);
+    \fill (5,-3) circle (2pt);
+    \fill (8,-2) circle (2pt);
+    \node[below] at (5,-3) {$A$};
+    \node[above] at (8,-2) {$B$};
+    \node at (6.5, -1.2) {$\overline{AB}$};
+\end{tikzpicture}
+\end{center}
+\end{document}
